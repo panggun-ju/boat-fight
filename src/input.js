@@ -1,4 +1,3 @@
-// src/input.js
 import { Vec2 } from './math.js';
 
 export const InputState = {

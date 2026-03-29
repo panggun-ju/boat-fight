@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Gladiaboat</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/style.css">
 </head>
 <body>
     <div id="game-container">
@@ -16,7 +16,31 @@
         <!-- HTML 기반 UI 오버레이 (상태바, 레벨업 등) -->
         <div id="html-ui">
             <div id="hud">
-                <div class="stat-bar">레벨 <span id="level-text">1</span> | 경험치: <span id="xp-text">0/5</span></div>
+                <div class="stat-bar">
+                    <div class="level-info">레벨 <span id="level-text">1</span></div>
+                    <div class="xp-bar-container">
+                        <div id="xp-bar-fill" class="xp-bar-fill"></div>
+                        <span id="xp-text" class="xp-text">0/5</span>
+                    </div>
+                </div>
+                <div class="hp-bar-container">
+                    <div id="hp-bar-fill" class="hp-bar-fill"></div>
+                    <span id="hp-text" class="hp-text">5/5</span>
+                </div>
+                <div class="game-info">
+                    <div class="state-info">상태: <span id="state-text">대기</span></div>
+                    <div class="enemy-info">적: <span id="enemy-count">0</span> / <span id="enemy-max">10</span></div>
+                </div>
+                <!-- Audio controls and links -->
+                <div class="top-controls" style="position: absolute; top: 10px; right: 10px; display: flex; gap: 5px; pointer-events: auto;">
+                    <button id="audio-toggle" style="background: rgba(0,0,0,0.5); color: white; border: 1px solid #555; padding: 5px 10px; cursor: pointer; border-radius: 5px; font-size: 16px;">🔇</button>
+                    <a href="https://youtu.be/nXA0uvr1AVs?si=_aEo6qewsz8T-wlN" target="_blank" style="background: rgba(0,0,0,0.5); color: white; border: 1px solid #555; padding: 5px 10px; cursor: pointer; border-radius: 5px; text-decoration: none; font-size: 16px; font-weight: bold;">?</a>
+                </div>
+            </div>
+            
+            <div id="social-links" style="position: absolute; bottom: 10px; right: 10px; text-align: right; color: rgba(255,255,255,0.5); font-size: 12px; z-index: 30; pointer-events: auto; text-shadow: 1px 1px 2px black;">
+                <a href="https://youtu.be/nXA0uvr1AVs?si=_aEo6qewsz8T-wlN" target="_blank" style="color: inherit; text-decoration: none;">GitHub: Gladiaboat</a><br>
+                <a href="https://instagram.com/panggun_ju" target="_blank" style="color: inherit; text-decoration: none;">Instagram: @panggun_ju</a>
             </div>
             
             <div id="level-up-screen" class="hidden">
@@ -24,9 +48,15 @@
                 <p>업그레이드를 선택하세요</p>
                 <div id="cards-container"></div>
             </div>
+            
+            <div id="game-over-screen" class="hidden">
+                <h2>게임 오버!</h2>
+                <p>당신의 배가 침몰했습니다.</p>
+                <button id="restart-btn">다시 시작</button>
+            </div>
         </div>
     </div>
 
-    <script type="module" src="src/main.js"></script>
+    <script type="module" src="/src/main.js"></script>
 </body>
 </html>

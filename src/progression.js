@@ -1,4 +1,3 @@
-// src/progression.js
 import { getRandomItems } from './items.js';
 
 export class Progression {

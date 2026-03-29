@@ -1,4 +1,3 @@
-// src/renderer.js
 import { InputState } from './input.js';
 import { clamp } from './math.js';
 
@@ -48,23 +47,62 @@ export class Renderer {
         ctx.save();
         ctx.translate(dx, dy);
 
-        // 배경 그리기
-        ctx.fillStyle = '#1a4b6e';
-        ctx.fillRect(-20, -20, this.width + 40, this.height + 40); // 흔들릴 때 배경 빈틈 방지
+        // 배경(물) 그리기 - 깊은 바다 느낌의 그라데이션
+        const bgGradient = ctx.createRadialGradient(this.width/2, this.height/2, 0, this.width/2, this.height/2, this.height);
+        bgGradient.addColorStop(0, '#1a4b6e');
+        bgGradient.addColorStop(1, '#0a233a');
+        ctx.fillStyle = bgGradient;
+        ctx.fillRect(-20, -20, this.width + 40, this.height + 40);
+
+        // 절차적 물결(파도) 그리기 - 다중 레이어 패럴랙스 효과
+        const time = performance.now() / 1000;
+        
+        const drawWaveLayer = (color, speed, amplitude, frequency, yOffset, lineWidth) => {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
+            for (let i = 0; i < 20; i++) {
+                ctx.beginPath();
+                for (let x = -20; x < this.width + 40; x += 20) {
+                    const y = (i * 60) + Math.sin(x * frequency + time * speed + i) * amplitude + yOffset;
+                    if (x === -20) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+            }
+        };
+
+        // 깊은 물결 (느리고 큼)
+        drawWaveLayer('rgba(255, 255, 255, 0.03)', 0.5, 20, 0.01, -30, 4);
+        // 중간 물결 (중간 속도)
+        drawWaveLayer('rgba(255, 255, 255, 0.05)', 0.8, 15, 0.02, -15, 2);
+        // 얕은 물결 (빠르고 작음, 거품 느낌)
+        drawWaveLayer('rgba(255, 255, 255, 0.08)', 1.2, 8, 0.03, 0, 1);
 
         // 뱃물결(Wake) 및 파티클 렌더링
         if (gameState.particles) {
             for (let i = gameState.particles.length - 1; i >= 0; i--) {
                 const p = gameState.particles[i];
-                p.life -= dt;
-                if (p.life <= 0) {
-                    gameState.particles.splice(i, 1);
-                    continue;
-                }
-                ctx.fillStyle = `rgba(255, 255, 255, ${p.life / p.maxLife * 0.5})`;
+                const progress = 1 - (p.life / p.maxLife);
+                const currentSize = p.size + (progress * 12); // 시간이 지날수록 퍼짐
+                
+                // 거품 느낌의 그라데이션
+                const alpha = (p.life / p.maxLife) * 0.5;
+                ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
                 ctx.beginPath();
-                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.arc(p.x, p.y, currentSize, 0, Math.PI * 2);
                 ctx.fill();
+                
+                // 테두리 (조금 더 선명한 거품)
+                ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 1.5})`;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+        }
+
+        // 투사체 그리기
+        if (gameState.projectiles) {
+            for (const proj of gameState.projectiles) {
+                proj.draw(ctx);
             }
         }
 
@@ -91,7 +129,7 @@ export class Renderer {
         const startPos = inputManager.dragStartPos;
 
         // 드래그 궤적 그리기
-        if ((state === InputState.ROWING || state === InputState.SLASHING) && startPos) {
+        if (state === InputState.ROWING && startPos) {
             const dragVec = inputManager.getDragVector();
             const dist = dragVec.mag();
             
@@ -99,35 +137,26 @@ export class Renderer {
             ctx.moveTo(startPos.x, startPos.y);
             ctx.lineTo(pos.x, pos.y);
             
-            if (state === InputState.ROWING) {
-                // 노 젓기: 파란색 고무줄 느낌
-                ctx.strokeStyle = `rgba(0, 150, 255, ${Math.min(1, 0.4 + dist/200)})`;
-                ctx.lineWidth = Math.min(15, 3 + dist/15); // 당길수록 두꺼워짐
-                ctx.setLineDash([10, 5]); 
-            } else {
-                // 칼질: 붉은색 날카로운 선
-                ctx.strokeStyle = `rgba(255, 50, 50, ${Math.min(1, 0.5 + dist/150)})`;
-                ctx.lineWidth = Math.max(2, 10 - dist/30); // 당길수록 얇아짐
-                ctx.setLineDash([]);
-            }
+            // 노 젓기: 파란색 고무줄 느낌
+            ctx.strokeStyle = `rgba(0, 150, 255, ${Math.min(1, 0.4 + dist/200)})`;
+            ctx.lineWidth = Math.min(15, 3 + dist/15); // 당길수록 두꺼워짐
+            ctx.setLineDash([10, 5]); 
             
             ctx.lineCap = 'round';
             ctx.stroke();
             ctx.setLineDash([]);
 
             // 노 젓기의 경우, 배의 어느 쪽을 젓고 있는지 알려주기 위해 시작점에 물결 파동을 크게 그려줌
-            if (state === InputState.ROWING) {
-                ctx.beginPath();
-                ctx.arc(startPos.x, startPos.y, 20 + Math.sin(performance.now()/50)*5, 0, Math.PI * 2);
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
-                ctx.lineWidth = 3;
-                ctx.stroke();
-            }
+            ctx.beginPath();
+            ctx.arc(startPos.x, startPos.y, 20 + Math.sin(performance.now()/50)*5, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+            ctx.lineWidth = 3;
+            ctx.stroke();
 
             // 시작점 마커
             ctx.beginPath();
             ctx.arc(startPos.x, startPos.y, 8, 0, Math.PI * 2);
-            ctx.fillStyle = state === InputState.ROWING ? '#0096ff' : '#ff3232';
+            ctx.fillStyle = '#0096ff';
             ctx.fill();
         }
 

@@ -1,14 +1,15 @@
-// src/items.js
 // 기발한 로그라이크 아이템/업그레이드 목록 정의
 
 export const ITEMS = [
     {
         id: 'twin_oars',
         name: '쌍발 노 (Twin Oars)',
-        desc: '노 젓기의 추진력과 회전력이 대폭 증가합니다. 치고 빠지기에 능해집니다.',
+        desc: '노 젓기의 추진력과 회전력이 대폭 증가하며, 양손으로 노를 젓습니다.',
         apply: (player) => {
             player.ROW_THRUST_SCALE *= 1.3;
             player.ROW_TORQUE_SCALE *= 1.3;
+            player.hasTwinOars = true;
+            player.oarScale = 1.2;
         }
     },
     {
@@ -17,7 +18,7 @@ export const ITEMS = [
         desc: '칼질의 사거리(반경)가 늘어납니다. 더 멀리서 안전하게 적을 벱니다.',
         apply: (player) => {
             player.slashRadius = (player.slashRadius || 80) + 30; 
-            // entities.js의 하드코딩된 80 대신 이 변수 사용하도록 수정 필요
+            player.swordScale = 1.5; // 칼 크기 시각적 증가
         }
     },
     {
