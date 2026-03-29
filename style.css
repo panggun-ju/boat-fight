@@ -5,20 +5,20 @@
 }
 
 body {
-    background-color: #111; /* 게임 바깥 배경은 어둡게 */
+    background-color: #111;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
     overflow: hidden;
     font-family: sans-serif;
-    /* 게임 실행 중에는 JS에서 #game-container 에 클래스를 추가하여 커서를 숨깁니다 */
-    /* 기본적으로는 커서가 보이도록 수정 */
+    /* 기본적으로 커서가 보이도록 설정 */
+    cursor: default !important;
 }
 
-/* 게임 진행 중일 때만 마우스 숨김 */
-body.game-active {
-    cursor: none; 
+/* 게임 플레이 영역인 컨테이너에만 특정 클래스가 붙었을 때 커서를 숨김 */
+#game-container.playing {
+    cursor: none !important;
 }
 
 #game-container {
@@ -221,6 +221,11 @@ canvas {
 .item-card:hover {
     transform: scale(1.05);
     border-color: #ffd700;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
 }
 
 .item-card h3 {
