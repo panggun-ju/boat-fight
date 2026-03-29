@@ -19,8 +19,26 @@ class UIManager {
         this.gameOverScreen = document.getElementById('game-over-screen');
         this.restartBtn = document.getElementById('restart-btn');
         
-        this.isPaused = false;
+        this.howToPlayScreen = document.getElementById('how-to-play-screen');
+        this.startGameBtn = document.getElementById('start-game-btn');
+        
+        // 튜토리얼 때문에 최초 상태는 Paused
+        this.isPaused = true;
         this.isGameOver = false;
+
+        if (this.startGameBtn) {
+            this.startGameBtn.addEventListener('click', () => {
+                if(this.howToPlayScreen) this.howToPlayScreen.classList.add('hidden');
+                this.isPaused = false; // 게임 시작!
+                
+                // AudioSys 강제 켜기 (브라우저 정책상 사용자 상호작용 후이므로 가능)
+                const audioToggleBtn = document.getElementById('audio-toggle');
+                if (AudioSys && !AudioSys.enabled && audioToggleBtn) {
+                    AudioSys.toggle();
+                    audioToggleBtn.innerText = '🔊';
+                }
+            });
+        }
     }
 
     updateHUD(level, xp, xpToNext, state, enemies, maxEnemies, hp, maxHp) {
