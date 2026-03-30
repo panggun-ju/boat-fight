@@ -165,18 +165,8 @@ export class Boat {
 
         if (this.holdingSword) {
             ctx.save();
-            if (this instanceof Enemy) {
-                // 적의 칼은 앞을 향함
-                ctx.rotate(this.swordAngle || 0);
-            } else {
-                // 플레이어의 칼은 방어 중일 때만 마우스를 향하고, 찌르기 중에는 정면을 향함
-                if (this.state === BoatState.BLOCKING) {
-                    ctx.rotate(this.localOarAngle || 0);
-                    ctx.rotate(this.swordAngle || 0);
-                } else {
-                    ctx.rotate(this.swordAngle || 0);
-                }
-            }
+            // 칼은 무조건 배의 정면 (또는 특정 상태에 따른 swordAngle) 방향으로 고정
+            ctx.rotate(this.swordAngle || 0);
             
             // 찌르기 오프셋 적용
             if (this.swordOffset) {
@@ -383,7 +373,7 @@ export class Player extends Boat {
         const dragVec = inputManager.getDragVector();
         const forwardVec = this.getForwardVec();
         
-        // 찌르기 준비 상태 판별 (우클릭 드래그 중이고, 드래그 방향이 배의 정면과 얼추 맞을 때)
+        // 찌르기 준비 상태 판별 (공격 모드 좌클릭 드래그 중이고, 드래그 방향이 배의 정면과 얼추 맞을 때)
         let isPreparingThrust = false;
         if (isSlashingInput && dragVec.magSq() > 100) {
             const dragDir = dragVec.normalize();
@@ -393,10 +383,11 @@ export class Player extends Boat {
             }
         }
 
-        this.holdingSword = isPreparingThrust || isBlockingInput || isAttackingNow;
+        this.holdingSword = inputManager.mode === 'attack' || isBlockingInput;
         
         // 찌르기 애니메이션 오프셋 (칼을 앞으로 뻗는 정도)
         this.swordOffset = 0;
+        this.swordAngle = 0; // 기본적으로 정면을 향함
 
         if (isAttackingNow) {
             // 찌르기 애니메이션: 앞으로 슉 나갔다가 돌아옴
@@ -416,7 +407,7 @@ export class Player extends Boat {
         }
 
         // --- 공격 발동 로직 ---
-        // 우클릭 드래그를 놓았을 때 (isSlashingInput이 false가 됨), 준비 상태였다면 공격 발동
+        // 좌클릭 드래그를 놓았을 때 (isSlashingInput이 false가 됨), 준비 상태였다면 공격 발동
         if (!isSlashingInput && this.wasPreparingThrust && this.slashTimer <= 0) {
             // 공격 발동!
             this.slashTimer = this.SLASH_COOLDOWN;

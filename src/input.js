@@ -21,6 +21,9 @@ export class InputManager {
         this.leftDown = false;
         this.rightDown = false;
         
+        // 현재 모드 (우클릭으로 전환)
+        this.mode = 'rowing'; // 'rowing' | 'attack'
+        
         // 현재 인식된 논리적 입력 상태
         this.state = InputState.IDLE;
         
@@ -74,10 +77,13 @@ export class InputManager {
         } else if (e.button === 2) {
             this.rightDown = true;
             this.rightDownTime = now;
+            // 우클릭 시 모드 토글
+            this.mode = this.mode === 'rowing' ? 'attack' : 'rowing';
         }
 
         // 드래그 시작점 기록 (새로운 액션이 시작될 때)
-        if (this.state === InputState.IDLE) {
+        if (this.state === InputState.IDLE && e.button === 0) {
+            // 좌클릭으로 액션 시작할 때만 기록
             this.dragStartPos = this.mousePos.clone();
         }
 
@@ -111,11 +117,12 @@ export class InputManager {
 
         // 하나만 눌려있는 경우
         if (this.leftDown && !this.rightDown) {
-            this.state = InputState.ROWING;
+            // 좌클릭 시 모드에 따라 상태 결정
+            this.state = this.mode === 'rowing' ? InputState.ROWING : InputState.SLASHING;
             if (!this.dragStartPos) this.dragStartPos = this.mousePos.clone();
         } else if (!this.leftDown && this.rightDown) {
-            this.state = InputState.SLASHING;
-            if (!this.dragStartPos) this.dragStartPos = this.mousePos.clone();
+            // 우클릭만 눌려있는 상태는 모드 토글 용도이므로 IDLE 유지
+            this.state = InputState.IDLE;
         }
     }
 

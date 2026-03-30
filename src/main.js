@@ -44,7 +44,7 @@ class UIManager {
         }
     }
 
-    updateHUD(level, xp, xpToNext, state, enemies, maxEnemies, hp, maxHp) {
+    updateHUD(level, xp, xpToNext, state, enemies, maxEnemies, hp, maxHp, mode) {
         this.levelText.innerText = level;
         this.xpText.innerText = `${Math.floor(xp)}/${xpToNext}`;
         
@@ -60,14 +60,16 @@ class UIManager {
         else if (state === 'slashing') stateStr = '공격 준비';
         else if (state === 'blocking') stateStr = '방어';
         
-        this.stateText.innerText = stateStr;
+        let modeStr = mode === 'attack' ? '[공격 모드]' : '[노젓기 모드]';
+        this.stateText.innerText = `${modeStr} ${stateStr}`;
         this.enemyCount.innerText = enemies;
         this.enemyMax.innerText = maxEnemies;
     }
 
     showLevelUpMenu(choices, onSelect) {
         this.isPaused = true;
-        document.body.classList.remove('game-active'); // 레벨업 시 커서 보이게 복구
+        const container = document.getElementById('game-container');
+        if (container) container.classList.remove('playing'); // 커서 표시
         
         this.levelUpScreen.classList.remove('hidden');
         this.cardsContainer.innerHTML = '';
@@ -82,7 +84,7 @@ class UIManager {
             card.addEventListener('click', () => {
                 onSelect(item);
                 this.levelUpScreen.classList.add('hidden');
-                document.body.classList.add('game-active'); // 게임으로 돌아가면 다시 숨김
+                if (container) container.classList.add('playing'); // 커서 숨김
                 this.isPaused = false;
             });
             this.cardsContainer.appendChild(card);
@@ -91,12 +93,13 @@ class UIManager {
 
     showGameOver(onRestart) {
         this.isGameOver = true;
-        document.body.classList.remove('game-active'); // 게임 오버 시 커서 보이게 복구
+        const container = document.getElementById('game-container');
+        if (container) container.classList.remove('playing'); // 커서 표시
         
         this.gameOverScreen.classList.remove('hidden');
         this.restartBtn.onclick = () => {
             this.gameOverScreen.classList.add('hidden');
-            document.body.classList.add('game-active'); // 재시작 시 다시 숨김
+            if (container) container.classList.add('playing'); // 커서 숨김
             this.isGameOver = false;
             onRestart();
         };
@@ -160,7 +163,8 @@ window.addEventListener('DOMContentLoaded', () => {
                 game.enemies.length,
                 maxEnemies,
                 game.player.hp,
-                game.player.maxHp
+                game.player.maxHp,
+                inputManager.mode
             );
         }
 
